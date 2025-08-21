@@ -1,838 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Keerana Pro — Smart Kirana Billing</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#0d9488">
-<style>
-  :root{
-    --bg:#0b0f14;        /* deep slate */
-    --card:#0f1720;      /* dark card */
-    --muted:#151e29;     /* soft contrast */
-    --brand:#0d9488;     /* teal */
-    --brand-2:#fb923c;   /* warm saffron accent */
-    --text:#e5eef7;      /* primary text */
-    --dim:#b9c4cf;       /* secondary text */
-    --good:#16a34a;
-    --bad:#ef4444;
-    --ring:rgba(13,148,136,.45);
-    --shadow: 0 10px 30px rgba(0,0,0,.45);
-    --radius:22px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    background: radial-gradient(1200px 600px at 20% -10%, rgba(251,146,60,.12), transparent 50%),
-                radial-gradient(900px 500px at 120% 10%, rgba(13,148,136,.12), transparent 50%),
-                var(--bg);
-    color:var(--text);
-  }
-
-  /* Layout */
-  .app{
-    display:grid; gap:16px; padding:18px;
-    grid-template-rows:auto auto 1fr auto;
-    max-width:1400px; margin:0 auto;
-  }
-  header{
-    display:flex; align-items:center; gap:12px; justify-content:space-between;
-    background: linear-gradient(180deg, rgba(13,148,136,.18), rgba(13,148,136,.06));
-    border:1px solid rgba(13,148,136,.35);
-    padding:14px 16px; border-radius:calc(var(--radius) - 4px);
-    box-shadow: var(--shadow);
-    position:sticky; top:12px; z-index:50;
-    backdrop-filter: blur(6px);
-  }
-  .brand{
-    display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.2px;
-  }
-  .brand-badge{
-    width:44px; height:44px; border-radius:14px;
-    background:
-      conic-gradient(from 210deg at 60% 40%, var(--brand-2), transparent 35%),
-      radial-gradient(120% 120% at 10% 10%, rgba(255,255,255,.15), transparent 40%),
-      var(--brand);
-    box-shadow:0 10px 24px rgba(13,148,136,.35), inset 0 0 0 1px rgba(255,255,255,.15);
-  }
-  .subtitle{font-size:12px; color:var(--dim); margin-top:-6px}
-  .toolbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-  .search{
-    display:flex; align-items:center; gap:10px;
-    background:var(--card); border:1px solid #1f2a36; padding:10px 12px; border-radius:14px; min-width:280px;
-  }
-  .search input{
-    all:unset; color:var(--text); width:260px; font-size:14px;
-  }
-  .btn{
-    appearance:none; border:none; cursor:pointer;
-    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-    border:1px solid #20303f; color:var(--text);
-    padding:10px 14px; border-radius:12px; font-weight:600; font-size:14px;
-    box-shadow:0 6px 16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
-    transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
-  }
-  .btn:hover{transform:translateY(-1px)}
-  .btn[aria-variant="brand"]{background:linear-gradient(180deg, rgba(13,148,136,.9), rgba(13,148,136,.75)); border-color:rgba(255,255,255,.14)}
-  .btn[aria-variant="accent"]{background:linear-gradient(180deg, rgba(251,146,60,.9), rgba(251,146,60,.7)); color:#0b0f14;}
-  .chip{
-    font-size:12px; padding:6px 10px; border-radius:999px; background:#11202a; border:1px solid #21424b; color:#b7f0e5
-  }
-
-  .customer{
-    display:grid; grid-template-columns:1fr auto; gap:12px;
-    background:var(--card); border:1px solid #1f2a36;
-    padding:12px; border-radius:var(--radius); box-shadow: var(--shadow);
-  }
-  .customer form{display:flex; gap:8px; flex-wrap:wrap}
-  .customer input, .customer select{
-    all:unset; background:#0f1a23; border:1px solid #223243; border-radius:12px; padding:10px 12px; color:var(--text); font-size:14px;
-  }
-  .customer .row{display:flex; gap:8px; flex-wrap:wrap}
-  .customer .row .field{display:flex; flex-direction:column; gap:6px}
-  .customer label{font-size:12px; color:var(--dim)}
-
-  main{
-    display:grid; grid-template-columns: 1fr 360px; gap:16px;
-  }
-  @media (max-width:1100px){ main{grid-template-columns:1fr} .cart{order:-1}}
-  .grid{
-    display:grid; gap:12px;
-    grid-template-columns: repeat(4, minmax(0,1fr));
-  }
-  @media (max-width:1150px){ .grid{grid-template-columns:repeat(3,1fr)} }
-  @media (max-width:900px){ .grid{grid-template-columns:repeat(2,1fr)} }
-  @media (max-width:580px){ .grid{grid-template-columns:1fr} }
-
-  .card{
-    position:relative; overflow:hidden; border-radius:20px; background:var(--card); border:1px solid #1f2a36;
-    box-shadow: var(--shadow);
-  }
-  .card .imgwrap{
-    aspect-ratio: 4 / 3; overflow:hidden; background:#0b1219; border-bottom:1px solid #1b2a3a;
-  }
-  .card img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(1.05) contrast(1.02)}
-  .card .body{padding:12px}
-  .title{font-weight:700}
-  .muted{color:var(--dim); font-size:12px}
-  .weight-ctrl{display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap}
-  .weight-ctrl select, .weight-ctrl input{
-    all:unset; background:#0f1a23; border:1px solid #223243; border-radius:12px; padding:8px 10px; color:var(--text); font-size:13px; min-width:92px;
-  }
-  .price{margin-top:8px; font-weight:800; font-size:18px}
-  .badge{
-    position:absolute; top:10px; left:10px; padding:6px 10px; border-radius:999px; font-size:12px; background:rgba(11,15,20,.75); border:1px solid rgba(255,255,255,.12); backdrop-filter: blur(3px)
-  }
-
-  .cart{
-    position:relative; border-radius:var(--radius); background:var(--card); border:1px solid #1f2a36; box-shadow: var(--shadow);
-    display:flex; flex-direction:column; min-height:280px; max-height:80vh;
-  }
-  .cart header{position:sticky; top:0; border-radius:inherit; box-shadow:none; background:linear-gradient(180deg, rgba(251,146,60,.18), rgba(251,146,60,.06)); border-color:rgba(251,146,60,.4); padding:12px 14px; gap:8px}
-  .cart-list{padding:12px; overflow:auto; flex:1}
-  .cart-row{display:grid; grid-template-columns: 1fr auto; gap:8px; background:#0f1a23; border:1px solid #223243; border-radius:14px; padding:10px; margin-bottom:8px}
-  .cart-row .meta{font-size:12px; color:var(--dim)}
-  .cart-row .qty{display:flex; gap:6px; align-items:center}
-  .qty button{width:28px; height:28px; border-radius:10px}
-  .totals{padding:12px; border-top:1px dashed #263446}
-  .totals .row{display:flex; justify-content:space-between; margin:6px 0; font-size:14px}
-  .totals .grand{font-size:18px; font-weight:800}
-  .printable{display:none}
-
-  /* Admin modal */
-  dialog{
-    border:none; border-radius:20px; background:var(--card); color:var(--text); width:min(920px, 96vw); box-shadow:0 30px 70px rgba(0,0,0,.6);
-  }
-  dialog::backdrop{background:rgba(0,0,0,.6); backdrop-filter: blur(2px)}
-  .modal-head{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1f2a36; padding:12px 14px}
-  .modal-body{padding:14px}
-  .price-table{width:100%; border-collapse:collapse; font-size:14px}
-  .price-table th, .price-table td{border-bottom:1px solid #1f2a36; padding:10px; text-align:left}
-  .price-table input{
-    all:unset; background:#0f1a23; border:1px solid #223243; border-radius:10px; padding:8px 10px; width:120px
-  }
-  .login{
-    display:flex; gap:8px; align-items:center; background:#0f1a23; border:1px solid #223243; padding:6px 8px; border-radius:12px;
-  }
-  .login input{all:unset; color:var(--text); font-size:14px; padding:6px 8px}
-  .hint{font-size:12px; color:#9fcdd0}
-
-  /* Bill (print) */
-  @media print{
-    body{background:white}
-    .app>*:not(.printable){display:none !important}
-    .printable{display:block !important; color:#000}
-    .bill{max-width:720px; margin:0 auto; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    .bill h2{margin:0 0 8px 0}
-    .bill table{width:100%; border-collapse:collapse}
-    .bill th,.bill td{border-bottom:1px solid #ddd; padding:8px; text-align:left; font-size:13px}
-    .bill .tot{font-weight:800}
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kirana Shop</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
   <!-- Header -->
-  <header>
-    <div class="brand">
-      <div class="brand-badge" aria-hidden="true"></div>
-      <div>
-        <div style="font-size:18px">Keerana <span style="color:var(--brand-2)">Pro</span></div>
-        <div class="subtitle">World-class POS & Billing for your Kirana</div>
-      </div>
-    </div>
-    <div class="toolbar">
-      <div class="search" role="search">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="#8fb9c7" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input id="search" type="text" placeholder="Search items, categories…" autocomplete="off" />
-      </div>
-
-      <span class="chip" id="loginState">Logged out</span>
-      <div class="login" id="loginBox">
-        <input id="user" placeholder="Admin ID" value="admin"/>
-        <input id="pass" placeholder="Password" type="password" value="1234"/>
-        <button class="btn" id="loginBtn">Login</button>
-      </div>
-      <button class="btn" id="logoutBtn" style="display:none">Logout</button>
-      <button class="btn" aria-variant="brand" id="openPrice">Edit Prices</button>
-      <button class="btn" aria-variant="accent" id="openHistory">Customer History</button>
-    </div>
+  <header class="header">
+    <div class="logo">🛒 My Kirana Shop</div>
+    <nav class="nav">
+      <button id="loginBtn" class="btn">Login</button>
+      <button id="logoutBtn" class="btn hidden">Logout</button>
+    </nav>
   </header>
 
-  <!-- Customer strip -->
-  <section class="customer">
-    <form id="customerForm">
-      <div class="row">
-        <div class="field">
-          <label>Customer Name</label>
-          <input id="custName" placeholder="e.g., Ravi Kumar" required />
-        </div>
-        <div class="field">
-          <label>Phone (unique)</label>
-          <input id="custPhone" placeholder="10-digit phone" pattern="\\d{10}" required />
-        </div>
-        <div class="field">
-          <label>Notes</label>
-          <input id="custNotes" placeholder="Landmark, delivery note…" />
-        </div>
-        <div class="field">
-          <label>&nbsp;</label>
-          <button class="btn" type="submit">Select/Save Customer</button>
-        </div>
+  <!-- Hero Banner -->
+  <section class="hero">
+    <h1>Welcome to My Kirana Shop</h1>
+    <p>Fresh groceries delivered with love 💚</p>
+    <input type="text" id="searchBar" placeholder="Search items..." />
+  </section>
+
+  <!-- Product Section -->
+  <section class="products">
+    <h2>Available Products</h2>
+    <div class="product-grid" id="productList">
+      <!-- Sample Product -->
+      <div class="product-card" data-name="Rice">
+        <img src="images/rice.jpg" alt="Rice">
+        <h3>Rice</h3>
+        <p>Price: ₹<span class="price">60</span> /kg</p>
+        <label>Weight:
+          <select class="weight">
+            <option value="1">1 Kg</option>
+            <option value="2">2 Kg</option>
+            <option value="5">5 Kg</option>
+          </select>
+        </label>
+        <button class="addToCart">Add to Cart</button>
       </div>
-      <div class="row">
-        <span class="hint" id="custHint">Tip: Phone number is used to track order history.</span>
+
+      <div class="product-card" data-name="Wheat">
+        <img src="images/wheat.jpg" alt="Wheat">
+        <h3>Wheat</h3>
+        <p>Price: ₹<span class="price">55</span> /kg</p>
+        <label>Weight:
+          <select class="weight">
+            <option value="1">1 Kg</option>
+            <option value="2">2 Kg</option>
+            <option value="5">5 Kg</option>
+          </select>
+        </label>
+        <button class="addToCart">Add to Cart</button>
       </div>
-    </form>
-    <div class="row" style="align-items:center">
-      <button class="btn" id="clearCart">Clear Cart</button>
-      <button class="btn" aria-variant="brand" id="genBill">Generate Bill</button>
+
+      <!-- You can copy this block and make 25+ items -->
+      <div class="product-card" data-name="Sugar">
+        <img src="images/sugar.jpg" alt="Sugar">
+        <h3>Sugar</h3>
+        <p>Price: ₹<span class="price">45</span> /kg</p>
+        <label>Weight:
+          <select class="weight">
+            <option value="1">1 Kg</option>
+            <option value="2">2 Kg</option>
+            <option value="5">5 Kg</option>
+          </select>
+        </label>
+        <button class="addToCart">Add to Cart</button>
+      </div>
+
+      <!-- Add more items like Oil, Milk, Dals, Snacks, Biscuits, Tea, Coffee, etc -->
     </div>
   </section>
 
-  <!-- Main -->
-  <main>
-    <section>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 6px 10px">
-        <div class="subtitle">Browse Items</div>
-        <div class="chip" id="itemCount">0 items</div>
-      </div>
-      <div class="grid" id="grid"></div>
-    </section>
+  <!-- Cart Section -->
+  <section class="cart-section">
+    <h2>🧾 Your Bill</h2>
+    <div id="cartItems"></div>
+    <p class="total">Total: ₹<span id="totalAmount">0</span></p>
+    <button id="generateBill" class="btn">Generate Bill</button>
+  </section>
 
-    <aside class="cart" id="cartPanel">
-      <header>
-        <div style="font-weight:800">Cart</div>
-        <div style="display:flex; align-items:center; gap:8px">
-          <span class="chip" id="cartItemsChip">0 items</span>
-          <span class="chip" id="customerChip">No customer</span>
-        </div>
-      </header>
-      <div class="cart-list" id="cartList"></div>
-      <div class="totals">
-        <div class="row"><span>Subtotal</span><span id="subTotal">₹0.00</span></div>
-        <div class="row"><span>Discount</span><span id="discount">₹0.00</span></div>
-        <div class="row"><span>GST (5%)</span><span id="tax">₹0.00</span></div>
-        <div class="row grand"><span>Grand Total</span><span id="grand">₹0.00</span></div>
-      </div>
-      <div style="padding:12px; display:flex; gap:8px">
-        <input id="discountInput" placeholder="Discount ₹" style="all:unset; background:#0f1a23; border:1px solid #223243; border-radius:12px; padding:10px 12px; width:50%" />
-        <button class="btn" id="applyDiscount">Apply</button>
-        <button class="btn" aria-variant="accent" id="checkoutBtn">Checkout & Save</button>
-      </div>
-    </aside>
-  </main>
-
-  <!-- Printable bill -->
-  <div class="printable">
-    <div class="bill" id="billView">
-      <!-- populated by JS -->
+  <!-- Customer Records Section -->
+  <section class="records">
+    <h2>Customer Records</h2>
+    <div id="recordsList">
+      <p>No records yet...</p>
     </div>
-  </div>
+  </section>
 
-  <!-- Admin Price Editor -->
-  <dialog id="priceDlg">
-    <div class="modal-head">
-      <div style="font-weight:800">Price Editor (₹ per kg/lt/unit)</div>
-      <button class="btn" id="closePrice">Close</button>
-    </div>
-    <div class="modal-body">
-      <table class="price-table" id="priceTable">
-        <thead>
-          <tr><th>Item</th><th>Category</th><th>Current Price</th><th>Update</th></tr>
-        </thead>
-        <tbody><!-- rows injected --></tbody>
-      </table>
-      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
-        <button class="btn" id="resetPrices">Reset to Defaults</button>
-        <button class="btn" aria-variant="brand" id="savePrices">Save Prices</button>
-      </div>
-    </div>
-  </dialog>
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2025 My Kirana Shop | Built with ❤️ for customers</p>
+  </footer>
 
-  <!-- History Modal -->
-  <dialog id="historyDlg">
-    <div class="modal-head">
-      <div style="font-weight:800">Customer History</div>
-      <button class="btn" id="closeHistory">Close</button>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex; gap:8px; margin-bottom:10px">
-        <input id="histPhone" placeholder="Enter phone (10 digits)" />
-        <button class="btn" id="loadHistory">Load</button>
-        <button class="btn" id="deleteHistory" style="margin-left:auto; background:#2a0f13; border-color:#442026">Delete All for Customer</button>
-      </div>
-      <div id="historyList" style="display:grid; gap:10px"></div>
-    </div>
-  </dialog>
-</div>
-
-<script>
-/** ==========================
- *  DATA & UTILITIES
- *  ========================== */
-const fmt = n => '₹' + (Number(n||0)).toFixed(2);
-const uid = () => Math.random().toString(36).slice(2,9);
-const byId = id => document.getElementById(id);
-const STORAGE_KEYS = {
-  PRICES:'kp_prices_v1',
-  HISTORY:'kp_history_v1',
-  DISCOUNT:'kp_disc_v1',
-  ADMIN:'kp_admin_v1'
-};
-
-const DEFAULT_ITEMS = [
-  {id:'rice_sona', name:'Sona Masoori Rice', cat:'Grains', unit:'kg', price:64, img:'https://images.unsplash.com/photo-1560807707-8cc77767d783?q=80&w=1200&auto=format&fit=crop'},
-  {id:'atta', name:'Wheat Atta', cat:'Grains', unit:'kg', price:52, img:'https://images.unsplash.com/photo-1595855759920-efd0f4b490d3?q=80&w=1200&auto=format&fit=crop'},
-  {id:'sugar', name:'Sugar', cat:'Staples', unit:'kg', price:46, img:'https://images.unsplash.com/photo-1604908554024-9e72adb5f3a6?q=80&w=1200&auto=format&fit=crop'},
-  {id:'salt', name:'Iodized Salt', cat:'Staples', unit:'kg', price:22, img:'https://images.unsplash.com/photo-1505577058444-a3dab90d4253?q=80&w=1200&auto=format&fit=crop'},
-  {id:'tur_dal', name:'Toor Dal', cat:'Pulses', unit:'kg', price:145, img:'https://images.unsplash.com/photo-1590080876471-9243f2f5eb4e?q=80&w=1200&auto=format&fit=crop'},
-  {id:'moong_dal', name:'Moong Dal', cat:'Pulses', unit:'kg', price:132, img:'https://images.unsplash.com/photo-1590080876832-80ebc1b9442e?q=80&w=1200&auto=format&fit=crop'},
-  {id:'chana', name:'Chana (Bengal Gram)', cat:'Pulses', unit:'kg', price:88, img:'https://images.unsplash.com/photo-1568641159330-c39e8c1c9c3b?q=80&w=1200&auto=format&fit=crop'},
-  {id:'oil_sun', name:'Sunflower Oil', cat:'Oils', unit:'lt', price:142, img:'https://images.unsplash.com/photo-1517260739337-6799d1312704?q=80&w=1200&auto=format&fit=crop'},
-  {id:'oil_gn', name:'Groundnut Oil', cat:'Oils', unit:'lt', price:186, img:'https://images.unsplash.com/photo-1586201375761-83865001e31b?q=80&w=1200&auto=format&fit=crop'},
-  {id:'tea', name:'Assam Tea', cat:'Beverages', unit:'kg', price:520, img:'https://images.unsplash.com/photo-1517686469429-8bdb88b9f907?q=80&w=1200&auto=format&fit=crop'},
-  {id:'coffee', name:'Filter Coffee', cat:'Beverages', unit:'kg', price:780, img:'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?q=80&w=1200&auto=format&fit=crop'},
-  {id:'biscuits', name:'Glucose Biscuits', cat:'Snacks', unit:'unit', price:10, img:'https://images.unsplash.com/photo-1598373182133-52452f7691a3?q=80&w=1200&auto=format&fit=crop'},
-  {id:'noodles', name:'Instant Noodles', cat:'Packaged', unit:'unit', price:15, img:'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?q=80&w=1200&auto=format&fit=crop'},
-  {id:'poha', name:'Poha (Flattened Rice)', cat:'Grains', unit:'kg', price:68, img:'https://images.unsplash.com/photo-1674030252024-9d855bdf6a21?q=80&w=1200&auto=format&fit=crop'},
-  {id:'ragi', name:'Ragi Flour', cat:'Grains', unit:'kg', price:78, img:'https://images.unsplash.com/photo-1604908814658-95d85f1e4bea?q=80&w=1200&auto=format&fit=crop'},
-  {id:'masala', name:'Garam Masala', cat:'Spices', unit:'kg', price:620, img:'https://images.unsplash.com/photo-1559561853-084515e8f3d1?q=80&w=1200&auto=format&fit=crop'},
-  {id:'haldi', name:'Turmeric Powder', cat:'Spices', unit:'kg', price:320, img:'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200&auto=format&fit=crop'},
-  {id:'mirchi', name:'Red Chilli Powder', cat:'Spices', unit:'kg', price:450, img:'https://images.unsplash.com/photo-1600326145359-4a2ba4f95a09?q=80&w=1200&auto=format&fit=crop'},
-  {id:'jeera', name:'Cumin Seeds', cat:'Spices', unit:'kg', price:580, img:'https://images.unsplash.com/photo-1566267669671-b9a77c07c3a6?q=80&w=1200&auto=format&fit=crop'},
-  {id:'dhania', name:'Coriander Seeds', cat:'Spices', unit:'kg', price:280, img:'https://images.unsplash.com/photo-1615485737647-0be079cb0f7c?q=80&w=1200&auto=format&fit=crop'},
-  {id:'soap', name:'Bath Soap', cat:'Personal Care', unit:'unit', price:32, img:'https://images.unsplash.com/photo-1587017539504-67cfbddac569?q=80&w=1200&auto=format&fit=crop'},
-  {id:'shampoo', name:'Shampoo (180ml)', cat:'Personal Care', unit:'unit', price:95, img:'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=1200&auto=format&fit=crop'},
-  {id:'detergent', name:'Detergent (1kg)', cat:'Home Care', unit:'unit', price:85, img:'https://images.unsplash.com/photo-1615485737677-33ef3a09ad49?q=80&w=1200&auto=format&fit=crop'},
-  {id:'toothpaste', name:'Toothpaste', cat:'Personal Care', unit:'unit', price:55, img:'https://images.unsplash.com/photo-1602300997571-41e31fd5e5f3?q=80&w=1200&auto=format&fit=crop'},
-  {id:'milk', name:'Toned Milk (1L)', cat:'Dairy', unit:'lt', price:54, img:'https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?q=80&w=1200&auto=format&fit=crop'}
-]; // 25 items
-
-function loadPrices(){
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRICES)||'{}');
-  const map = {};
-  for(const it of DEFAULT_ITEMS){ map[it.id]= {...it, price: saved[it.id] ?? it.price}; }
-  return map;
-}
-let PRICE_MAP = loadPrices();
-
-/** Compute price for a given base per unit and weight selection */
-function computeAmount(base, unit, weightSel, customGram){
-  // For unit (piece) pricing
-  if(unit==='unit'){ return base * (weightSel ? Number(weightSel) : 1); }
-  // For kg/lt pricing: weightSel in kg or lt (0.1 -> 100g, etc)
-  let qty = Number(weightSel || 1);
-  if(weightSel==='custom' && customGram){
-    // custom in grams/ml -> convert to kg/lt
-    const g = Math.max(1, Number(customGram||0));
-    qty = g/1000;
-  }
-  return base * qty;
-}
-
-/** ==========================
- *  STATE
- *  ========================== */
-const state = {
-  admin:false,
-  customer:null, // {name, phone, notes}
-  cart:[], // {id, name, unit, weightSel, custom, qty, priceEach, line}
-  discount: Number(localStorage.getItem(STORAGE_KEYS.DISCOUNT)||0)
-};
-
-/** ==========================
- *  RENDER: GRID
- *  ========================== */
-const gridEl = byId('grid');
-const itemCountEl = byId('itemCount');
-const searchEl = byId('search');
-
-function itemCardHTML(it){
-  const price = PRICE_MAP[it.id].price;
-  return `
-  <article class="card" data-id="${it.id}" data-name="${it.name.toLowerCase()}" data-cat="${it.cat.toLowerCase()}">
-    <div class="imgwrap">
-      <img loading="lazy" src="${it.img}" alt="${it.name}">
-    </div>
-    <div class="badge">${it.cat}</div>
-    <div class="body">
-      <div class="title">${it.name}</div>
-      <div class="muted">Base: ${fmt(price)} / ${it.unit}</div>
-
-      <div class="weight-ctrl">
-        <select class="wsel" aria-label="Weight">
-          ${it.unit==='unit' ? `
-            <option value="1" selected>1 pc</option>
-            <option value="2">2 pc</option>
-            <option value="3">3 pc</option>
-            <option value="5">5 pc</option>
-            <option value="10">10 pc</option>
-          ` : `
-            <option value="0.25">250 g</option>
-            <option value="0.5" selected>500 g</option>
-            <option value="1">1 ${it.unit}</option>
-            <option value="2">2 ${it.unit}</option>
-            <option value="custom">Custom (g/ml)</option>
-          `}
-        </select>
-        <input class="custom" placeholder="grams/ml" style="display:none" inputmode="numeric" />
-      </div>
-
-      <div class="price" data-price>₹0.00</div>
-      <div style="display:flex; gap:8px; margin-top:8px">
-        <button class="btn add">Add</button>
-        <button class="btn" onclick="quickAdd('${it.id}')">+1</button>
-      </div>
-    </div>
-  </article>`;
-}
-
-function renderGrid(){
-  gridEl.innerHTML = DEFAULT_ITEMS.map(itemCardHTML).join('');
-  itemCountEl.textContent = `${DEFAULT_ITEMS.length} items`;
-  // attach events per card
-  gridEl.querySelectorAll('.card').forEach(card=>{
-    const id = card.dataset.id;
-    const base = PRICE_MAP[id].price;
-    const unit = DEFAULT_ITEMS.find(x=>x.id===id).unit;
-    const wsel = card.querySelector('.wsel');
-    const custom = card.querySelector('.custom');
-    const priceEl = card.querySelector('[data-price]');
-    const addBtn = card.querySelector('.add');
-
-    const updatePrice = ()=>{
-      const amt = computeAmount(base, unit, wsel.value, custom.value);
-      priceEl.textContent = fmt(amt);
-      custom.style.display = (wsel.value==='custom' && unit!=='unit') ? '' : 'none';
-    };
-    wsel.addEventListener('change', updatePrice);
-    custom.addEventListener('input', updatePrice);
-    updatePrice();
-
-    addBtn.addEventListener('click', ()=>{
-      addToCart(id, unit, wsel.value, custom.value);
-    });
-  });
-}
-
-/** ==========================
- *  SEARCH
- *  ========================== */
-function applySearch(){
-  const q = (searchEl.value||'').toLowerCase().trim();
-  const cards = [...gridEl.children];
-  let visible = 0;
-  for(const c of cards){
-    const hay = c.dataset.name + ' ' + c.dataset.cat;
-    const show = !q || hay.includes(q);
-    c.style.display = show ? '' : 'none';
-    if(show) visible++;
-  }
-  itemCountEl.textContent = `${visible} item${visible===1?'':'s'}`;
-}
-searchEl.addEventListener('input', applySearch);
-
-/** ==========================
- *  CART
- *  ========================== */
-const cartListEl = byId('cartList');
-const cartItemsChip = byId('cartItemsChip');
-const subTotalEl = byId('subTotal');
-const discountEl = byId('discount');
-const taxEl = byId('tax');
-const grandEl = byId('grand');
-
-function addToCart(id, unit, weightSel, custom){
-  const item = DEFAULT_ITEMS.find(x=>x.id===id);
-  const base = PRICE_MAP[id].price;
-  const amountEach = computeAmount(base, unit, weightSel, custom);
-  // Merge identical lines (same id + same weightSel + same custom grams)
-  const key = `${id}|${weightSel}|${custom||''}`;
-  const existing = state.cart.find(x=>x.key===key);
-  if(existing){ existing.qty += 1; existing.line = existing.qty * amountEach; }
-  else{
-    state.cart.push({
-      key, id, name:item.name, unit, weightSel, custom, qty:1,
-      priceEach: amountEach, line: amountEach
-    });
-  }
-  renderCart();
-}
-window.quickAdd = function(id){
-  const unit = DEFAULT_ITEMS.find(x=>x.id===id).unit;
-  const weightSel = unit==='unit' ? '1' : '0.5';
-  addToCart(id, unit, weightSel, '');
-};
-
-function updateCartLine(key, delta){
-  const row = state.cart.find(x=>x.key===key);
-  if(!row) return;
-  row.qty = Math.max(0, row.qty + delta);
-  row.line = row.qty * row.priceEach;
-  if(row.qty===0){
-    state.cart = state.cart.filter(x=>x.key!==key);
-  }
-  renderCart();
-}
-
-function removeCartLine(key){
-  state.cart = state.cart.filter(x=>x.key!==key);
-  renderCart();
-}
-
-function renderCart(){
-  cartListEl.innerHTML = state.cart.map(row=>{
-    const labelWeight = (()=>{
-      if(row.unit==='unit') return `${row.weightSel} pc`;
-      if(row.weightSel==='custom') return `${row.custom} ${row.unit==='lt'?'ml':'g'}`;
-      return row.unit==='lt' ? `${row.weightSel} lt` : `${row.weightSel} kg`;
-    })();
-    return `
-      <div class="cart-row">
-        <div>
-          <div style="font-weight:700">${row.name}</div>
-          <div class="meta">${labelWeight} × ${row.qty} @ ${fmt(row.priceEach)}</div>
-        </div>
-        <div style="display:flex; gap:6px; align-items:center">
-          <div class="qty">
-            <button class="btn" onclick='updateCartLine("${row.key}", -1)'>−</button>
-            <span>${row.qty}</span>
-            <button class="btn" onclick='updateCartLine("${row.key}", 1)'>+</button>
-          </div>
-          <div style="width:90px; text-align:right; font-weight:800">${fmt(row.line)}</div>
-          <button class="btn" onclick='removeCartLine("${row.key}")'>✕</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  const subtotal = state.cart.reduce((s,x)=>s+x.line,0);
-  const disc = Number(state.discount||0);
-  const taxable = Math.max(0, subtotal - disc);
-  const tax = +(taxable * 0.05).toFixed(2);
-  const grand = taxable + tax;
-
-  cartItemsChip.textContent = `${state.cart.length} item${state.cart.length===1?'':'s'}`;
-  subTotalEl.textContent = fmt(subtotal);
-  discountEl.textContent = fmt(disc);
-  taxEl.textContent = fmt(tax);
-  grandEl.textContent = fmt(grand);
-}
-
-byId('applyDiscount').addEventListener('click', ()=>{
-  const v = Number(byId('discountInput').value||0);
-  state.discount = Math.max(0, v);
-  localStorage.setItem(STORAGE_KEYS.DISCOUNT, String(state.discount));
-  renderCart();
-});
-
-byId('clearCart').addEventListener('click', ()=>{
-  if(confirm('Clear all items from cart?')){
-    state.cart = [];
-    renderCart();
-  }
-});
-
-/** ==========================
- *  CUSTOMER
- *  ========================== */
-const customerChip = byId('customerChip');
-byId('customerForm').addEventListener('submit', e=>{
-  e.preventDefault();
-  const name = byId('custName').value.trim();
-  const phone = byId('custPhone').value.trim();
-  const notes = byId('custNotes').value.trim();
-  if(!/^\d{10}$/.test(phone)) return alert('Enter 10-digit phone number');
-  state.customer = {name, phone, notes};
-  customerChip.textContent = `${name} (${phone})`;
-  byId('custHint').textContent = 'Customer selected. Orders will be saved to this number.';
-});
-
-/** ==========================
- *  CHECKOUT & HISTORY
- *  ========================== */
-function getHistory(){
-  return JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY)||'{}');
-}
-function saveHistory(h){
-  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(h));
-}
-
-function checkout(saveOnly=false){
-  if(!state.customer) return alert('Select a customer first.');
-  if(state.cart.length===0) return alert('Cart is empty.');
-  const now = new Date();
-  const sub = state.cart.reduce((s,x)=>s+x.line,0);
-  const disc = Number(state.discount||0);
-  const taxable = Math.max(0, sub - disc);
-  const tax = +(taxable * 0.05).toFixed(2);
-  const grand = taxable + tax;
-
-  const order = {
-    id: uid(),
-    at: now.toISOString(),
-    customer: state.customer,
-    lines: state.cart.map(x=>({name:x.name, qty:x.qty, priceEach:x.priceEach, line:x.line, unit:x.unit, weightSel:x.weightSel, custom:x.custom})),
-    subtotal: sub, discount: disc, tax, total: grand
-  };
-
-  // persist
-  const hist = getHistory();
-  const k = state.customer.phone;
-  hist[k] = hist[k] || [];
-  hist[k].unshift(order);
-  saveHistory(hist);
-
-  // show printable bill
-  renderBill(order);
-  if(!saveOnly) window.print();
-
-  // reset cart
-  state.cart = [];
-  renderCart();
-}
-
-function renderBill(order){
-  const el = byId('billView');
-  const d = new Date(order.at);
-  const dateStr = d.toLocaleString();
-  el.innerHTML = `
-    <h2>Keerana Pro — Tax Invoice</h2>
-    <div style="display:flex; justify-content:space-between; margin-bottom:8px">
-      <div>
-        <div><strong>Customer:</strong> ${order.customer.name}</div>
-        <div><strong>Phone:</strong> ${order.customer.phone}</div>
-        ${order.customer.notes ? `<div><strong>Notes:</strong> ${order.customer.notes}</div>`:''}
-      </div>
-      <div>
-        <div><strong>Bill No:</strong> ${order.id}</div>
-        <div><strong>Date:</strong> ${dateStr}</div>
-      </div>
-    </div>
-    <table>
-      <thead><tr><th>Item</th><th>Details</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
-      <tbody>
-        ${order.lines.map(l=>{
-          const details = (()=>{
-            if(l.unit==='unit') return `${l.weightSel} pc`;
-            if(l.weightSel==='custom') return `${l.custom}${l.unit==='lt'?' ml':' g'}`;
-            return l.unit==='lt' ? `${l.weightSel} lt` : `${l.weightSel} kg`;
-          })();
-          return `<tr><td>${l.name}</td><td>${details}</td><td>${l.qty}</td><td>${fmt(l.priceEach)}</td><td>${fmt(l.line)}</td></tr>`;
-        }).join('')}
-      </tbody>
-      <tfoot>
-        <tr><td colspan="4" class="tot">Subtotal</td><td class="tot">${fmt(order.subtotal)}</td></tr>
-        <tr><td colspan="4">Discount</td><td>${fmt(order.discount)}</td></tr>
-        <tr><td colspan="4">GST (5%)</td><td>${fmt(order.tax)}</td></tr>
-        <tr><td colspan="4" class="tot">Grand Total</td><td class="tot">${fmt(order.total)}</td></tr>
-      </tfoot>
-    </table>
-    <div style="margin-top:10px">Thank you for shopping with us!</div>
-  `;
-}
-
-byId('genBill').addEventListener('click', ()=>checkout(false));
-byId('checkoutBtn').addEventListener('click', ()=>checkout(true));
-
-/** History modal controls */
-const historyDlg = byId('historyDlg');
-byId('openHistory').addEventListener('click', ()=> historyDlg.showModal());
-byId('closeHistory').addEventListener('click', ()=> historyDlg.close());
-byId('loadHistory').addEventListener('click', ()=>{
-  const phone = byId('histPhone').value.trim();
-  if(!/^\d{10}$/.test(phone)) return alert('Enter 10-digit phone number');
-  const hist = getHistory()[phone] || [];
-  const list = byId('historyList');
-  if(hist.length===0){
-    list.innerHTML = `<div class="subtitle">No orders yet for ${phone}</div>`;
-    return;
-  }
-  list.innerHTML = hist.map(o=>{
-    const d = new Date(o.at).toLocaleString();
-    const items = o.lines.map(l=>`${l.name} ×${l.qty}`).join(', ');
-    return `
-      <div style="background:#0f1a23; border:1px solid #223243; border-radius:14px; padding:10px">
-        <div style="display:flex; justify-content:space-between; gap:8px">
-          <div><strong>${d}</strong><div class="muted">${o.id}</div></div>
-          <div style="font-weight:800">${fmt(o.total)}</div>
-        </div>
-        <div class="muted" style="margin-top:6px">${items}</div>
-        <div style="margin-top:8px; display:flex; gap:6px">
-          <button class="btn" onclick='reprint("${o.id}", "${phone}")'>Reprint</button>
-          <button class="btn" onclick='loadAsCart("${o.id}", "${phone}")'>Load as Cart</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-});
-byId('deleteHistory').addEventListener('click', ()=>{
-  const phone = byId('histPhone').value.trim();
-  if(!/^\d{10}$/.test(phone)) return alert('Enter 10-digit phone number');
-  if(!confirm(`Delete ALL orders for ${phone}?`)) return;
-  const all = getHistory();
-  delete all[phone];
-  saveHistory(all);
-  byId('historyList').innerHTML = `<div class="subtitle">Deleted all orders for ${phone}</div>`;
-});
-
-window.reprint = function(id, phone){
-  const orders = (getHistory()[phone]||[]);
-  const ord = orders.find(o=>o.id===id);
-  if(!ord) return alert('Order not found.');
-  renderBill(ord);
-  window.print();
-}
-window.loadAsCart = function(id, phone){
-  const orders = (getHistory()[phone]||[]);
-  const ord = orders.find(o=>o.id===id);
-  if(!ord) return alert('Order not found.');
-  // load first line quantities back to cart
-  state.cart = ord.lines.map(l=>({
-    key: uid(), id: DEFAULT_ITEMS.find(x=>x.name===l.name)?.id||uid(),
-    name:l.name, unit:l.unit, weightSel:l.weightSel, custom:l.custom,
-    qty:l.qty, priceEach:l.priceEach, line:l.priceEach * l.qty
-  }));
-  state.discount = ord.discount||0;
-  byId('discountInput').value = state.discount;
-  renderCart();
-}
-
-/** ==========================
- *  ADMIN (login & prices)
- *  ========================== */
-function loadAdmin(){
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN)||'null');
-  if(saved && saved.loggedIn){
-    state.admin = true;
-    byId('loginState').textContent = `Admin: ${saved.user}`;
-    byId('loginBox').style.display='none';
-    byId('logoutBtn').style.display='';
-  } else {
-    state.admin = false;
-    byId('loginState').textContent = 'Logged out';
-    byId('loginBox').style.display='';
-    byId('logoutBtn').style.display='none';
-  }
-}
-byId('loginBtn').addEventListener('click', ()=>{
-  const u = byId('user').value.trim();
-  const p = byId('pass').value.trim();
-  // Simple demo auth. Change as needed.
-  if((u==='admin' && p==='1234') || (u && p==='1234')){
-    state.admin = true;
-    localStorage.setItem(STORAGE_KEYS.ADMIN, JSON.stringify({loggedIn:true, user:u}));
-    loadAdmin();
-    alert('Logged in as Admin');
-  } else {
-    alert('Invalid credentials. Hint: admin / 1234');
-  }
-});
-byId('logoutBtn').addEventListener('click', ()=>{
-  localStorage.removeItem(STORAGE_KEYS.ADMIN);
-  loadAdmin();
-});
-
-const priceDlg = byId('priceDlg');
-byId('openPrice').addEventListener('click', ()=>{
-  if(!state.admin) return alert('Login as Admin to edit prices.');
-  // populate table
-  const tbody = priceDlg.querySelector('tbody');
-  tbody.innerHTML = DEFAULT_ITEMS.map(it=>{
-    const curr = PRICE_MAP[it.id].price;
-    return `<tr>
-      <td style="font-weight:600">${it.name}</td>
-      <td class="muted">${it.cat}</td>
-      <td>${fmt(curr)} / ${it.unit}</td>
-      <td><input data-id="${it.id}" type="number" step="0.01" min="0" value="${curr}" /></td>
-    </tr>`;
-  }).join('');
-  priceDlg.showModal();
-});
-byId('closePrice').addEventListener('click', ()=> priceDlg.close());
-byId('resetPrices').addEventListener('click', ()=>{
-  if(!confirm('Reset all prices to defaults?')) return;
-  localStorage.removeItem(STORAGE_KEYS.PRICES);
-  PRICE_MAP = loadPrices();
-  renderGrid(); applySearch();
-});
-byId('savePrices').addEventListener('click', ()=>{
-  const inputs = priceDlg.querySelectorAll('input[data-id]');
-  const save = {};
-  inputs.forEach(inp=>{
-    const id = inp.dataset.id;
-    const val = Math.max(0, Number(inp.value||0));
-    save[id]=val;
-  });
-  localStorage.setItem(STORAGE_KEYS.PRICES, JSON.stringify(save));
-  PRICE_MAP = loadPrices();
-  priceDlg.close();
-  renderGrid(); applySearch();
-  alert('Prices saved.');
-});
-
-/** ==========================
- *  INIT
- *  ========================== */
-function init(){
-  loadAdmin();
-  renderGrid();
-  renderCart();
-  applySearch();
-}
-init();
-
-/** Keyboard quickies */
-document.addEventListener('keydown', (e)=>{
-  if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){
-    e.preventDefault(); searchEl.focus();
-  }
-});
-</script>
+  <!-- Scripts -->
+  <script src="script.js"></script>
 </body>
 </html>
